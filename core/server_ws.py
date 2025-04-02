@@ -3,7 +3,7 @@ import websockets
 
 connected_clients = set()
 
-async def handle_client(websocket, path):
+async def handle_client(websocket):
     # Agregar nuevo cliente
     connected_clients.add(websocket)
     print(f"Nuevo cliente conectado. Total: {len(connected_clients)}")

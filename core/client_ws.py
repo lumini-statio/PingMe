@@ -18,7 +18,7 @@ async def receive_messages(websocket):
             break
 
 async def main():
-    async with websockets.connect("ws://localhost:8002") as websocket:
+    async with websockets.connect("ws://localhost:8000") as websocket:
         print("Conectado al servidor WebSocket. Escribe 'exit' para salir.")
         
         # Ejecutar sender y receiver en paralelo
