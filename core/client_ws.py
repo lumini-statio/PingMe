@@ -1,29 +1,45 @@
 import asyncio
 import websockets
-import keyboard
+from aioconsole import ainput
 
 
 async def send_messages(websocket):
+    '''
+    Send messages to the WebSocket server.
+    '''
+    print("Escribe 'exit' para salir")
     while True:
-        message = input("Tú: ")
+        message = await ainput("")
         await websocket.send(message)
         if message.lower() == 'exit':
             break
 
+
 async def receive_messages(websocket):
+    '''
+    Receive messages from the WebSocket server.
+    '''
     while True:
         try:
             message = await websocket.recv()
-            print(f"\nRecibido: {message}")
+            print(f"\n{message}")
         except websockets.exceptions.ConnectionClosed:
-            print("Conexión cerrada por el servidor")
-            break
+            print("Reconectando en 3 segundos...")
+            await asyncio.sleep(3)
+
 
 async def main():
-    async with websockets.connect("ws://localhost:8000") as websocket:
+    '''
+    Main function to connect to the WebSocket server and handle messages.
+    '''
+    async with websockets.connect(
+        "ws://localhost:8000",
+        ping_interval=20,
+        ping_timeout=60,
+        ) as websocket:
         print("Conectado al servidor WebSocket. Escribe 'exit' para salir.")
         
-        # Ejecutar sender y receiver en paralelo
+        # Create tasks for sending and receiving messages
         sender = asyncio.create_task(send_messages(websocket))
         receiver = asyncio.create_task(receive_messages(websocket))
         
@@ -32,17 +48,3 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-
-# async def start_client():
-#     async with websockets.connect('ws://localhost:8002') as websocket:
-#         done = False
-#         while not done:
-#             if keyboard.is_pressed('space'):
-#                 await websocket.send('buzz')
-#                 message = await websocket.recv()
-#                 print(message)
-#                 done = True
-
-
-# if __name__ == '__main__':
-#     asyncio.run(start_client())
