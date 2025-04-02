@@ -1,11 +1,13 @@
 import asyncio
 import websockets
+import os
+import ssl
 
-connected_clients = set()
+connected_clients = []
 
 async def handle_client(websocket):
     # Agregar nuevo cliente
-    connected_clients.add(websocket)
+    connected_clients.append(websocket)
     print(f"Nuevo cliente conectado. Total: {len(connected_clients)}")
     
     try:
@@ -14,8 +16,7 @@ async def handle_client(websocket):
             
             # Reenviar el mensaje a todos los clientes conectados
             for client in connected_clients:
-                if client != websocket:  # Opcional: no reenviar al remitente
-                    await client.send(f"Usuario dice: {message}")
+                await client.send(f"Usuario dice: {message}")
                     
     finally:
         # Eliminar cliente cuando se desconecta
@@ -24,8 +25,34 @@ async def handle_client(websocket):
 
 async def main():
     async with websockets.serve(handle_client, "localhost", 8000):
-        print("Servidor WebSocket iniciado en ws://localhost:8002")
-        await asyncio.Future()  # Ejecutar indefinidamente
+        print("Servidor WebSocket iniciado en wss://localhost:8002")
+        await asyncio.Future()
+
+# clients = []
+
+# async def handle_message(websocket, path):
+#     global clients
+#     global fastest_time
+#     message = await websocket.recv()
+
+#     if message == 'buzz':
+#         response_time = asyncio.get_event_loop().time()
+#         clients.append([websocket, response_time])
+
+#         if len(clients) == 1:
+#             await websocket.send('first place!')
+#             fastest_time = response_time
+#         else:
+#             time = round(response_time -fastest_time, 2)
+#             await websocket.send(f'Response time {time} sec slower')
+
+
+# async def main():
+#     async with websockets.serve(handle_message, 'localhost', 8002):
+#         print("Servidor WebSocket iniciado en ws://localhost:8002")
+#         print(os.environ.get('HTTP_PROXY'))
+#         await asyncio.Future()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

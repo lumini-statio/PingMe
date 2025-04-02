@@ -1,5 +1,7 @@
 import asyncio
 import websockets
+import keyboard
+
 
 async def send_messages(websocket):
     while True:
@@ -27,5 +29,20 @@ async def main():
         
         await asyncio.gather(sender, receiver)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     asyncio.run(main())
+
+# async def start_client():
+#     async with websockets.connect('ws://localhost:8002') as websocket:
+#         done = False
+#         while not done:
+#             if keyboard.is_pressed('space'):
+#                 await websocket.send('buzz')
+#                 message = await websocket.recv()
+#                 print(message)
+#                 done = True
+
+
+# if __name__ == '__main__':
+#     asyncio.run(start_client())
