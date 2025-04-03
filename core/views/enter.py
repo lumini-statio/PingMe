@@ -105,14 +105,20 @@ class Enter:
             tight=True
             ),
             actions=[
-                ft.TextButton('Close', on_click=self.close_register),
+
+                ft.TextButton(
+                    'Close',
+                    on_click=self.close_register, 
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value)
+                    )),
+
                 ft.ElevatedButton(
                     'Submit',
                     on_click=self.register,
                     style=ft.ButtonStyle(
-                                shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value)
-                            )
-                    )
+                        shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value)
+                    ))
             ]
         )
 
@@ -126,15 +132,17 @@ class Enter:
         says to user that the credentials are incorrect.
         """
         try:
-            founded = self.user.login(
+            result = self.user.login(
                 username=self.username_field.value, 
                 password=self.login_password_field.value
             )
-            if isinstance(founded, tuple):
+            user_founded = result[0]
+            print(user_founded)
+            if isinstance(user_founded, tuple):
                 self.user.state.change_user_state(user=self.user)
-                self.user.set_id(founded[0])
-                self.user.set_username(founded[1])
-                self.user.set_password(founded[2])
+                self.user.id == user_founded[0]
+                self.user.username == user_founded[1]
+                self.user.password == user_founded[2]
                 self.btn_logout.visible = True
                 self.update_view()
                 self.update_listview()
@@ -142,6 +150,7 @@ class Enter:
                 self.login_error_text.value = 'Invalid username or password'
                 self.login_error_text.update()
         except Exception:
+            print(traceback.format_exc())
             log(f'{__file__} - {traceback.format_exc()}')
     
     def register(self, e):
@@ -156,8 +165,9 @@ class Enter:
                         username=self.username_register_field.value, 
                         value=self.password_register_field.value
                     )
-            exists = new_user['user_exists']
-            if exists == False:
+            print(new_user)
+            
+            if new_user['user_exists'] == False and new_user['user'] != None:
                 
                 self.username_register_field.value = ''
                 self.password_register_field.value = ''
@@ -177,6 +187,7 @@ class Enter:
                 dialog.open = True
                 self.page.update()
         except Exception:
+            print(traceback.format_exc())
             log(f'{__file__} - {traceback.format_exc()}')
 
     def open_register(self, e):

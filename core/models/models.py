@@ -1,16 +1,17 @@
-from peewee import Model, CharField, ForeignKeyField
+from peewee import Model, CharField, ForeignKeyField, SqliteDatabase
 
+DB = SqliteDatabase('chat.db')
 
 class UserModel(Model):
     username = CharField(unique=True)
     password = CharField()
 
     class Meta:
-        database = 'sqlite:///chat.db'
+        database = DB
         table_name = 'users'
 
 
-class MessegeModel(Model):
+class MessageModel(Model):
     message = CharField()
     sender = ForeignKeyField(
         model=UserModel,
@@ -21,5 +22,9 @@ class MessegeModel(Model):
     time_sent = CharField()
 
     class Meta:
-        database = 'sqlite:///chat.db'
+        database = DB
         table_name = 'messages'
+
+
+DB.connect()
+DB.create_tables([UserModel, MessageModel])

@@ -1,7 +1,7 @@
-from state.user_states import NotAuthenticatedState, AuthenticatedState
+from core.state.user_states import UserState, NotAuthenticatedState, AuthenticatedState
 from core.models.user.hasher import hash_password
-from models.models import UserModel
-from controller.logger import log
+from core.models.models import UserModel
+from core.controller.logger import log
 import traceback
 
 
@@ -21,11 +21,16 @@ class User:
     access to the system if the password matches the one stored in the database for the
     corresponding username.
     '''
-    def __init__(self, username: str=None, password: str=None, id: int=None):
+    def __init__(
+            self,
+            username: str=None,
+            password: str=None,
+            id: int=None
+        ):
         self._id: int = id
-        self.state = NotAuthenticatedState()
-        self.username: str = username
-        self.password: bytes = password
+        self._state = NotAuthenticatedState()
+        self._username: str = username
+        self._password: bytes = password
     '''
     --------------------------------------------------------------------------
     GETTERS & SETTERS
@@ -38,22 +43,30 @@ class User:
     @id.setter
     def id(self, id: int) -> None:
         self._id = id
+
+    @property
+    def state(self) -> UserState:
+        return self._state
+
+    @state.setter
+    def state(self, state: UserState) -> None:
+        self._state = state
     
     @property
     def username(self) -> str:
-        return self.username
+        return self._username
     
     @username.setter
     def username(self, username: str) -> None:
-        self.username = username
+        self._username = username
     
     @property
     def password(self) -> bytes:
-        return self.password
+        return self._password
 
     @password.setter
-    def set_password(self, password: int) -> None:
-        self.password = password
+    def password(self, password: str) -> None:
+        self._password = password
     
     '''
     CLASS METHODS
@@ -89,10 +102,11 @@ class User:
                 raise ValueError('Username field cannot be empty')
             
             password_hashed = hash_password(password)
-            users = UserModel.select()
+            users = UserModel.select().where(UserModel.username == username, UserModel.password == password_hashed)
             
-            founded = [user for user in users if user[1]==username.strip() and user[2]==password_hashed]
-            return founded[0]
+            founded = [(um.id, um.username, um.password) for um in users]
+            
+            return founded
         except Exception:
             log(f'{__file__} - {traceback.format_exc()}')
 

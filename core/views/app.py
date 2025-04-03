@@ -12,29 +12,56 @@ class Main:
             self,
             page: ft.Page
         ):
+
+        #----------------------------------------------#
+        #                 PAGE Config                  #
+        #----------------------------------------------#
+
         self.page = page
         self.page.title = 'Chat in network'
         self.page.window.width = 1000
         self.page.window.height = 700
         self.page.padding = 0
         self.page.bgcolor = ft.Colors.WHITE10
-        self.page.theme_mode = ft.ThemeMode.LIGHT
+        self.page.theme_mode = ft.ThemeMode.DARK
 
         self.page.theme = Styles.PAGE_THEME.value
 
+        #----------------------------------------------#
+
         self.user = User()
+
+        #----------------------------------------------#
+        #               Different PAGES                #
+        #----------------------------------------------#
+
+        self.chat_page = Chat(
+            page=self.page,
+            handle_logout=self.handle_logout,
+            user=self.user
+        )
+
         self.enter_page = Enter(
             page=page,
             user=self.user,
-            handle_logout=self.handle_logout
-        )
-        self.chat_page = Enter(
-            page=self.page,
+            update_view=self.update_view,
+            update_listview=self.chat_page.update_listview,
+            btn_logout=self.chat_page.btn_logout
         )
 
         self.content_area = ft.Container(
             content=self.enter_page.login_view,
             expand=True
+        )
+
+        self.page.add(
+            ft.Container(
+                content=self.content_area,
+                expand=True,
+                bgcolor=ft.Colors.WHITE24,
+                padding=0,
+                alignment=ft.alignment.center
+            )
         )
 
 
@@ -62,14 +89,5 @@ class Main:
                 user=self.user
                 )
             self.update_view()
-        except Exception as e:
+        except Exception:
             log(f'{__file__} - {traceback.format_exc()}')
-    
-    def run(self):
-        self.page.add(ft.Container(
-            content=self.content_area,
-            expand=True,
-            bgcolor=ft.Colors.WHITE24,
-            padding=0,
-            alignment=ft.alignment.center
-        ))

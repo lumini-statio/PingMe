@@ -15,48 +15,32 @@ class UserFactory():
         If the user already exists, returns True, 
         if not, returns False
         """
+        username = username.strip()
         password = hash_password(value)
 
-        user = User(
+        exists = UserModel.select().where(UserModel.username == username).exists()
+
+        if exists:
+            return {
+                'user_exists': True,
+                'user': None
+            }
+        
+        user_to_db = UserModel(
+            username=username.strip(),
+            password=password
+        )
+
+        user_to_db.save()
+
+        my_user = User(
+            id=user_to_db.id,
             username=username.strip(), 
             password=password
         )
 
-        users = UserModel.select()
-
-        exists = False
-
-        for element in users:
-            if element[1] == user.username:
-                exists = True
-                break
-
-        if exists == False:
-            my_user = UserModel(
-                username = user.username,
-                password = user.password
-            )
-
-            my_user.save()
-
-            users = UserModel.select()
-
-            final_user = [user for user in users if user[1]==username and user[2]==password]
-
-            if final_user != None:
-                user.set_id(final_user[0][0])
-
-                return {
-                    'user_exists': exists,
-                    'user': user
-                }
-            else:
-                log(f'{__file__} - final_user its void')
-
-        
         return {
             'user_exists': exists,
-            'user': None
+            'user': my_user.__str__()
         }
-        
             

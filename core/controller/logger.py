@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 
 appdata_path = os.getenv('APPDATA')
-logs_dir = os.path.join(appdata_path, 'SePaGen', 'logs')
+logs_dir = os.path.join(appdata_path, 'Chat')
 
 os.makedirs(logs_dir, exist_ok=True)
 
