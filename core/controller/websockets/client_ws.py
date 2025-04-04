@@ -32,9 +32,7 @@ class WebSocketClient:
                 )
                 self.running = True
                 self.receive_task = asyncio.create_task(self.receive_messages())
-                print("Conectado al servidor WebSocket")
         except Exception as e:
-            print(f"Error de conexión: {e}")
             await self.page.show_snack_bar(
                 ft.SnackBar(ft.Text("Error al conectar con el servidor"), open=True)
             )
@@ -62,7 +60,6 @@ class WebSocketClient:
                 
                 await self.update_listview()
             except Exception as e:
-                print(f"Error al enviar mensaje: {e}")
                 await self.reconnect()
 
     @async_log
@@ -79,17 +76,14 @@ class WebSocketClient:
                             self.websocket.recv(),
                             timeout=1.0
                         )
-                        print(f"Mensaje recibido: {message}")
                         await self.update_listview()
                     except asyncio.TimeoutError:
                         continue
                         
             except websockets.exceptions.ConnectionClosed as e:
-                print(f"Conexión cerrada: {e.code if e.code else 'No code'}, reconectando...")
                 await self.reconnect()
                 break
             except Exception as e:
-                print(f"Error al recibir mensajes: {e}")
                 await asyncio.sleep(1)
 
     @async_log
@@ -123,50 +117,3 @@ class WebSocketClient:
                 except Exception:
                     pass
                 self.websocket = None
-
-
-# async def send_messages(websocket):
-#     '''
-#     Send messages to the WebSocket server.
-#     '''
-#     print("Escribe 'exit' para salir")
-#     while True:
-#         message = await ainput("")
-#         await websocket.send(message)
-#         if message.lower() == 'exit':
-#             break
-
-
-# async def receive_messages(websocket):
-#     '''
-#     Receive messages from the WebSocket server.
-#     '''
-#     while True:
-#         try:
-#             message = await websocket.recv()
-#             print(f"\n{message}")
-#         except websockets.exceptions.ConnectionClosed:
-#             print("Reconectando en 3 segundos...")
-#             await asyncio.sleep(3)
-
-
-# async def main():
-#     '''
-#     Main function to connect to the WebSocket server and handle messages.
-#     '''
-#     async with websockets.connect(
-#         "ws://localhost:8000",
-#         ping_interval=20,
-#         ping_timeout=60,
-#         ) as websocket:
-#         print("Conectado al servidor WebSocket. Escribe 'exit' para salir.")
-        
-#         # Create tasks for sending and receiving messages
-#         sender = asyncio.create_task(send_messages(websocket))
-#         receiver = asyncio.create_task(receive_messages(websocket))
-        
-#         await asyncio.gather(sender, receiver)
-
-
-# if __name__ == '__main__':
-#     asyncio.run(main())
