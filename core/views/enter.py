@@ -1,5 +1,5 @@
 import flet as ft
-from core.views.config import Styles
+from config import Styles
 from core.models.user.user import User
 from core.models.user.user_factory import UserFactory
 from core.models.models import UserModel

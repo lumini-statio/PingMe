@@ -1,5 +1,5 @@
 import flet as ft
-from core.views.config import Styles
+from config import Styles
 from core.models.user.user import User
 from core.views.enter import auth_view
 from core.views.chat import chat_view
@@ -37,7 +37,7 @@ async def main_view(page: ft.Page):
             current_view = chat_components["view"]
             page.add(current_view)
 
-            await chat_components["update_listview"]()
+            await chat_components["load_chat"]()
         else:
             auth_components = auth_view(page, user, update_view)
             current_view = auth_components["view"]
@@ -47,3 +47,4 @@ async def main_view(page: ft.Page):
         await page.update_async()
 
     await update_view()
+    
