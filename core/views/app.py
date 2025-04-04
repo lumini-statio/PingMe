@@ -17,7 +17,7 @@ async def main_view(page: ft.Page):
     page.window_width = Styles.PAGE_WIDTH.value
     page.window_height = Styles.PAGE_HEIGHT.value
     page.padding = 0
-    page.bgcolor = ft.Colors.PRIMARY
+    page.bgcolor = ft.Colors.BLUE_GREY_900
     page.theme_mode = ft.ThemeMode.DARK
     page.theme = Styles.PAGE_THEME.value
 

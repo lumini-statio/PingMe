@@ -1,4 +1,8 @@
-from peewee import Model, CharField, ForeignKeyField, SqliteDatabase
+from peewee import (Model,
+                    CharField,
+                    ForeignKeyField,
+                    TimeField,
+                    SqliteDatabase)
 
 DB = SqliteDatabase('chat.db')
 
@@ -19,7 +23,7 @@ class MessageModel(Model):
         on_delete='CASCADE',
         on_update='CASCADE'
     )
-    time_sent = CharField()
+    time_sent = TimeField()
 
     class Meta:
         database = DB

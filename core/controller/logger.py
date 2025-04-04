@@ -10,7 +10,7 @@ from functools import wraps
 
 # os.makedirs(logs_dir, exist_ok=True)
 
-log_file = os.path.join(BASE_DIR, 'core', 'logs.log')
+log_file = os.path.join(BASE_DIR, 'logs.log')
 
 logging.basicConfig(
     filename=log_file,
@@ -28,7 +28,7 @@ def log(fun):
             logging.info(f"Funcion {fun.__name__} completada. Retornó: {result}")
             return result
         except Exception as e:
-            logging.error(f"Error en {fun.__name__}:\n{traceback.format_exc()}")
+            logging.error(f"Error en {fun.__name__}:\n{e}")
             raise
     
     return wrapper
@@ -43,7 +43,7 @@ def async_log(fun):
             logging.info(f"Funcion {fun.__name__} completada. Retornó: {result}")
             return result
         except Exception as e:
-            logging.error(f"Error en {fun.__name__}:\n{traceback.format_exc()}")
+            logging.error(f"Error en {fun.__name__}:\n{e}")
             raise
     
     return wrapper
