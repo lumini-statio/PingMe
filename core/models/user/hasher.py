@@ -1,5 +1,8 @@
 import hashlib
+from core.controller.logger import log
 
+
+@log
 def hash_password(password: str):
         """
         function that hashes the password

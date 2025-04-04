@@ -3,11 +3,12 @@ from config import Styles
 from core.models.user.user import User
 from core.views.enter import auth_view
 from core.views.chat import chat_view
-from core.controller.logger import log
+from core.controller.logger import async_log
 import traceback
 import asyncio
 
 
+@async_log
 async def main_view(page: ft.Page):
     page.title = 'Chat in network'
     page.window_center()
@@ -23,6 +24,7 @@ async def main_view(page: ft.Page):
     user = User()
     current_view = None
 
+    @async_log
     async def update_view():
 
         nonlocal current_view

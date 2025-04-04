@@ -3,11 +3,10 @@ from config import Styles
 from core.models.user.user import User
 from core.models.user.user_factory import UserFactory
 from core.models.models import UserModel
-from core.controller.logger import log
-import traceback
-import asyncio
+from core.controller.logger import log, async_log
 
 
+@log
 def auth_view(page: ft.Page, user: User, update_view):
     username_field = ft.TextField(
         label="Username",
@@ -54,25 +53,24 @@ def auth_view(page: ft.Page, user: User, update_view):
         actions_alignment=ft.MainAxisAlignment.END
     )
 
-    async def login(e):
-        try:
-            result = user.login(
-                username=username_field.value, 
-                password=login_password_field.value
-            )
 
-            if result and isinstance(result[0], tuple):
-                user_founded = result[0]
-                user.state.change_user_state(user=user)
-                user.id = user_founded[0]
-                user.username = user_founded[1]
-                user.password = user_founded[2]
-                await update_view()
-            else:
-                login_error_text.value = 'Invalid username or password'
-                await login_error_text.update_async()
-        except Exception:
-            log(traceback.print_exc())
+    @async_log
+    async def login(e):
+        result = user.login(
+            username=username_field.value, 
+            password=login_password_field.value
+        )
+
+        if result and isinstance(result[0], tuple):
+            user_founded = result[0]
+            user.state.change_user_state(user=user)
+            user.id = user_founded[0]
+            user.username = user_founded[1]
+            user.password = user_founded[2]
+            await update_view()
+        else:
+            login_error_text.value = 'Invalid username or password'
+            await login_error_text.update_async()
 
     btn_register = ft.ElevatedButton(
         'Submit',
@@ -82,41 +80,38 @@ def auth_view(page: ft.Page, user: User, update_view):
         )
     )
 
+    @async_log
     async def _perform_register():
-        try:
-            if username_register_field.value and password_register_field.value:
+        if username_register_field.value and password_register_field.value:
 
-                if UserModel.select().where(UserModel.username == username_register_field.value).exists():
+            if UserModel.select().where(UserModel.username == username_register_field.value).exists():
 
-                    dialog = ft.AlertDialog(title=ft.Text('Cannot use these credentials'))
-                    page.dialog = dialog 
-                    dialog.open = True
-                    page.update()
+                dialog = ft.AlertDialog(title=ft.Text('Cannot use these credentials'))
+                page.dialog = dialog 
+                dialog.open = True
+                page.update()
 
-                else:
+            else:
+            
+                UserFactory.create(
+                    username=username_register_field.value, 
+                    value=password_register_field.value
+                )
+
+                dialog = ft.AlertDialog(
+                    title=ft.Text('User created successfully!')
+                )
                 
-                    UserFactory.create(
-                        username=username_register_field.value, 
-                        value=password_register_field.value
-                    )
+                username_register_field.value = ''
+                password_register_field.value = ''
 
-                    dialog = ft.AlertDialog(
-                        title=ft.Text('User created successfully!')
-                    )
-                    
-                    username_register_field.value = ''
-                    password_register_field.value = ''
+                page.dialog = dialog 
+                dialog.open = True
 
-                    page.dialog = dialog 
-                    dialog.open = True
-
-                    await page.update_async()
-
-        except Exception as e:
-            print("Error en registro:", e)
-            log(traceback.print_exc())
+                await page.update_async()
 
 
+    @log
     def _handle_register(e):
         page.run_task(_perform_register)
 
@@ -140,6 +135,7 @@ def auth_view(page: ft.Page, user: User, update_view):
         actions_alignment=ft.MainAxisAlignment.END
     )
 
+    @log
     def toggle_register(open: bool):
         register_dialog.open = open
         page.update()

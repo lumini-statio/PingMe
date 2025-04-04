@@ -1,9 +1,10 @@
 import asyncio
 import websockets
 import flet as ft
-from core.models.models import MessageModel, UserModel
+from core.models.models import MessageModel
 from core.models.user.user import User
 from datetime import datetime
+from core.controller.logger import async_log
 
 
 class WebSocketClient:
@@ -14,6 +15,7 @@ class WebSocketClient:
         self.websocket = None
         self.running = False
 
+    @async_log
     async def connect(self):
         uri = "ws://localhost:8000"
         try:
@@ -31,6 +33,7 @@ class WebSocketClient:
                 ft.SnackBar(ft.Text("Error al conectar con el servidor"), open=True)
             )
 
+    @async_log
     async def send_message(self, message):
         now = datetime.now().time().strftime('%DD - %H:%M')
         if self.websocket:
@@ -49,6 +52,7 @@ class WebSocketClient:
                 print(f"Error al enviar mensaje: {e}")
                 await self.reconnect()
 
+    @async_log
     async def receive_messages(self):
         while self.running:
             try:
@@ -65,11 +69,13 @@ class WebSocketClient:
                 print(f"Error al recibir mensajes: {e}")
                 await asyncio.sleep(1)
 
+    @async_log
     async def reconnect(self):
         await self.disconnect()
         await asyncio.sleep(3)
         await self.connect()
 
+    @async_log
     async def disconnect(self):
         self.running = False
         if self.websocket:

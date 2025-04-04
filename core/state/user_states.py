@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from core.controller.logger import log
 
 
 class UserState(ABC):
@@ -11,6 +12,7 @@ class UserState(ABC):
         pass
     
 class AuthenticatedState(UserState):
+    @log
     def change_user_state(self, user):
         user.state = NotAuthenticatedState()
 
@@ -18,6 +20,7 @@ class AuthenticatedState(UserState):
         return True
 
 class NotAuthenticatedState(UserState):
+    @log
     def change_user_state(self, user):
         user.state = AuthenticatedState()
     

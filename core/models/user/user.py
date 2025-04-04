@@ -71,6 +71,7 @@ class User:
     '''
     CLASS METHODS
     '''
+    @log
     def login(self, username: str, password: str):
         '''This Python function is a login method that checks if the username and password are provided,
         hashes the password, retrieves users from a data access object, and attempts to find a user with
@@ -110,6 +111,8 @@ class User:
         except Exception:
             log(f'{__file__} - {traceback.format_exc()}')
 
+
+    @log
     def is_authenticated(self):
         '''
         if the user is authenticated returns True,

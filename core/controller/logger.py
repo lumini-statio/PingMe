@@ -1,7 +1,8 @@
 import os
 import logging
 from config import BASE_DIR
-from datetime import datetime
+import traceback
+from functools import wraps
 
 
 # appdata_path = os.getenv('APPDATA')
@@ -9,9 +10,7 @@ from datetime import datetime
 
 # os.makedirs(logs_dir, exist_ok=True)
 
-logs_dir = os.path.join(BASE_DIR, 'Chat')
-
-log_file = os.path.join(logs_dir, 'logs.log')
+log_file = os.path.join(BASE_DIR, 'core', 'logs.log')
 
 logging.basicConfig(
     filename=log_file,
@@ -20,9 +19,31 @@ logging.basicConfig(
     datefmt='%DD/%mm/%Y %H:%M:%S'
 )
 
-
+#logs sincronos
 def log(fun):
+    @wraps(fun)
     def wrapper(*args, **kwargs):
-        logging.info(fun(*args, **kwargs))
+        try:
+            result = fun(*args, **kwargs)
+            logging.info(f"Funcion {fun.__name__} completada. Retornó: {result}")
+            return result
+        except Exception as e:
+            logging.error(f"Error en {fun.__name__}:\n{traceback.format_exc()}")
+            raise
+    
+    return wrapper
+
+
+#logs asincronos
+def async_log(fun):
+    @wraps(fun)
+    async def wrapper(*args, **kwargs):
+        try:
+            result = await fun(*args, **kwargs)
+            logging.info(f"Funcion {fun.__name__} completada. Retornó: {result}")
+            return result
+        except Exception as e:
+            logging.error(f"Error en {fun.__name__}:\n{traceback.format_exc()}")
+            raise
     
     return wrapper
