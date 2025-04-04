@@ -1,93 +1,49 @@
 import flet as ft
 from core.views.config import Styles
 from core.models.user.user import User
-from core.views.enter import Enter
-from core.views.chat import Chat
+from core.views.enter import auth_view
+from core.views.chat import chat_view
 from core.controller.logger import log
 import traceback
+import asyncio
 
 
-class Main:
-    def __init__(
-            self,
-            page: ft.Page
-        ):
+async def main_view(page: ft.Page):
+    page.title = 'Chat in network'
+    page.window_center()
+    page.window.resizable = False
+    page.window.maximizable = False
+    page.window_width = Styles.PAGE_WIDTH.value
+    page.window_height = Styles.PAGE_HEIGHT.value
+    page.padding = 0
+    page.bgcolor = ft.Colors.PRIMARY
+    page.theme_mode = ft.ThemeMode.DARK
+    page.theme = Styles.PAGE_THEME.value
 
-        #----------------------------------------------#
-        #                 PAGE Config                  #
-        #----------------------------------------------#
+    user = User()
+    current_view = None
 
-        self.page = page
-        self.page.title = 'Chat in network'
-        self.page.window.width = 1000
-        self.page.window.height = 700
-        self.page.padding = 0
-        self.page.bgcolor = ft.Colors.WHITE10
-        self.page.theme_mode = ft.ThemeMode.DARK
+    async def update_view():
 
-        self.page.theme = Styles.PAGE_THEME.value
+        nonlocal current_view
 
-        #----------------------------------------------#
+        page.controls.clear()
+        page.overlay.clear()
 
-        self.user = User()
+        if user.is_authenticated():
 
-        #----------------------------------------------#
-        #               Different PAGES                #
-        #----------------------------------------------#
+            chat_components = chat_view(page, user, update_view)
 
-        self.chat_page = Chat(
-            page=self.page,
-            handle_logout=self.handle_logout,
-            user=self.user
-        )
+            current_view = chat_components["view"]
+            page.add(current_view)
 
-        self.enter_page = Enter(
-            page=page,
-            user=self.user,
-            update_view=self.update_view,
-            update_listview=self.chat_page.update_listview,
-            btn_logout=self.chat_page.btn_logout
-        )
+            await chat_components["update_listview"]()
+        else:
+            auth_components = auth_view(page, user, update_view)
+            current_view = auth_components["view"]
+            page.overlay.append(auth_components["dialog"])
+            page.add(current_view)
 
-        self.content_area = ft.Container(
-            content=self.enter_page.login_view,
-            expand=True
-        )
+        await page.update_async()
 
-        self.page.add(
-            ft.Container(
-                content=self.content_area,
-                expand=True,
-                bgcolor=ft.Colors.WHITE24,
-                padding=0,
-                alignment=ft.alignment.center
-            )
-        )
-
-
-    def update_view(self):
-        """
-        If the user is authenticated change the view
-        to the password generator, if not, returns
-        to the login view
-        """
-        try:
-            if self.user.is_authenticated():
-                self.content_area.content = self.chat_page.view
-            else:
-                self.content_area.content = self.enter_page.login_view
-            self.page.update()
-        except Exception as e:
-            log(f'{__file__} - {traceback.format_exc()}')
-    
-
-    def handle_logout(self, e):
-        try:
-            self.enter_page.username_field.value = ''
-            self.enter_page.login_password_field.value = ''
-            self.user.state.change_user_state(
-                user=self.user
-                )
-            self.update_view()
-        except Exception:
-            log(f'{__file__} - {traceback.format_exc()}')
+    await update_view()
