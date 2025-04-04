@@ -19,7 +19,7 @@ class Styles(Enum):
     BTN_RADIUS = 7
     BORDER = ft.border.all(1, ft.Colors.TRANSPARENT)
     ERROR_COLOR = ft.Colors.RED_700
-    BG_COLOR = ft.Colors.GREY_900
+    BG_COLOR = ft.Colors.BLACK12
     BTN_NOT_ACTIATED_BG = ft.Colors.BLUE_900
     BORDER_COLOR = ft.Colors.TRANSPARENT
 

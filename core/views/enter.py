@@ -10,13 +10,13 @@ from core.controller.logger import log, async_log
 def auth_view(page: ft.Page, user: User, update_view):
     username_field = ft.TextField(
         label="Username",
-        bgcolor=Styles.BG_COLOR,
+        bgcolor=Styles.BG_COLOR.value,
         border_color=Styles.BORDER_COLOR
     )
     
     login_password_field = ft.TextField(
         label="Password",
-        bgcolor=Styles.BG_COLOR,
+        bgcolor=Styles.BG_COLOR.value,
         border_color=Styles.BORDER_COLOR,
         password=True,
         can_reveal_password=True
@@ -76,7 +76,7 @@ def auth_view(page: ft.Page, user: User, update_view):
         'Submit',
         on_click=lambda e: _handle_register(e),
         style=ft.ButtonStyle(
-            shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS)
+            shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value)
         )
     )
 
@@ -148,8 +148,22 @@ def auth_view(page: ft.Page, user: User, update_view):
                 login_password_field,
                 login_error_text,
                 ft.Row([
-                    ft.ElevatedButton('Log in', on_click=login),
-                    ft.ElevatedButton('Register', on_click=lambda e: toggle_register(True)),
+                    ft.ElevatedButton(
+                        'Log in',
+                        on_click=login,
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value),
+                            padding=ft.padding.only(left=30, right=30)
+                        )
+                    ),
+                    ft.ElevatedButton(
+                        'Register',
+                        on_click=lambda e: toggle_register(True),
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value),
+                            padding=ft.padding.only(left=25, right=25)
+                        )
+                        ),
                 ], alignment=ft.MainAxisAlignment.CENTER)
             ], expand=True, alignment=ft.MainAxisAlignment.CENTER),
             expand=True,

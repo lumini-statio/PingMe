@@ -92,19 +92,25 @@ def chat_view(page: ft.Page, user: User, update_view):
     )
 
     msg_input = ft.TextField(
-        expand=True,
-        height=60,
-        bgcolor=Styles.BG_COLOR,
-        border_color=Styles.BORDER_COLOR,
+        width=560,
+        height=50,
+        bgcolor=Styles.BG_COLOR.value,
+        border_color=Styles.BORDER_COLOR.value,
+        border_radius=Styles.BTN_RADIUS.value,
         hint_text='Type your message',
-        on_submit=handle_send_message  # Ahora handle_send_message ya está definido
+        on_submit=handle_send_message,
+        multiline=True,
+        max_length=1000,
+        text_size=Styles.MIN_TEXT_SIZE.value,
     )
 
     btn_send = ft.FloatingActionButton(
         icon=ft.icons.SEND,
-        shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS),
+        shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value),
+        width=45,
+        height=45,
         visible=True,
-        on_click=handle_send_message  # Ahora handle_send_message ya está definido
+        on_click=handle_send_message
     )
 
     return {
@@ -121,8 +127,13 @@ def chat_view(page: ft.Page, user: User, update_view):
                 ft.Row([
                     msg_input,
                     btn_send
-                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-            ], expand=True),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                )
+            ], 
+            expand=True,
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
             padding=10,
             expand=True,
         ),
