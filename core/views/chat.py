@@ -92,7 +92,7 @@ def chat_view(page: ft.Page, user: User, update_view):
     )
 
     msg_input = ft.TextField(
-        width=560,
+        width=610,
         height=50,
         bgcolor=Styles.BG_COLOR.value,
         border_color=Styles.BORDER_COLOR.value,
@@ -100,6 +100,7 @@ def chat_view(page: ft.Page, user: User, update_view):
         hint_text='Type your message',
         on_submit=handle_send_message,
         multiline=True,
+        shift_enter=True,
         max_length=1000,
         text_size=Styles.MIN_TEXT_SIZE.value,
     )
@@ -119,7 +120,7 @@ def chat_view(page: ft.Page, user: User, update_view):
                 btn_logout,
                 ft.Container(
                     content=list_messages,
-                    bgcolor=ft.colors.BLUE_GREY_900,
+                    bgcolor=ft.colors.BLUE_GREY_700,
                     border_radius=5,
                     padding=10,
                     expand=True,

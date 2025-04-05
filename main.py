@@ -12,7 +12,7 @@ def is_port_in_use(port: int) -> bool:
         return sock.connect_ex(('localhost', port)) == 0
 
 def run_server():
-    if not is_port_in_use(8000):
+    if not is_port_in_use(8080):
         asyncio.run(server())
 
 if __name__ == '__main__':
