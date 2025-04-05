@@ -11,7 +11,7 @@ connected_clients = []
 @async_log
 async def handle_client(websocket):
     '''
-    Handle incoming WebSocket connections and messages.
+    Handle incoming websockets connections and messages.
     '''
     connected_clients.append(websocket)
 
@@ -54,7 +54,8 @@ async def server():
     async with websockets.serve(
         handle_client, 
         "localhost", 
-        8000,
+        8080,
         ping_interval=20,
-        ping_timeout=60,):
+        ping_timeout=60):
+
         await asyncio.Future()

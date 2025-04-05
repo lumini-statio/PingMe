@@ -1,6 +1,5 @@
 import asyncio
 import websockets
-from websockets import ClientConnection
 import flet as ft
 from core.models.models import MessageModel
 from core.models.user.user import User
@@ -16,13 +15,17 @@ class WebSocketClient:
         self.websocket = None
         self.running = False
         self.receive_task = None
-        self.lock = asyncio.Lock()  # Para evitar condiciones de carrera
+        self.lock = asyncio.Lock()
+
 
     @async_log
     async def connect(self):
-        uri = "ws://localhost:8000"
+        """
+        fun that connect the client to the server
+        """
+        uri = "ws://localhost:8080"
         try:
-            await self.disconnect()  # Limpia cualquier conexión previa
+            await self.disconnect()
             
             async with self.lock:
                 self.websocket = await websockets.connect(
@@ -31,25 +34,36 @@ class WebSocketClient:
                     ping_timeout=60,
                 )
                 self.running = True
+
+                # start the receive task to listen for messages
                 self.receive_task = asyncio.create_task(self.receive_messages())
-        except Exception as e:
-            await self.page.show_snack_bar(
-                ft.SnackBar(ft.Text("Error al conectar con el servidor"), open=True)
-            )
+
+        except Exception:
             await self.reconnect()
+
 
     @async_log
     async def send_message(self, message):
+        """
+        Fun to send messages to the server
+        """
+        # if the message is empty, dont send it
         if not message.strip():
             return
 
-        now = datetime.now().strftime('%H:%M')
+        now = datetime.now().strftime('%H:%M:%S')
+
         async with self.lock:
+            # check if the client is connected, else reconnect
             if self.websocket is None:
                 await self.reconnect()
                 return
 
             try:
+                """
+                create an instance in db of the message sent,
+                send it to the server and update the messages listview
+                """
                 MessageModel.create(
                     message=message,
                     sender=self.user.id,
@@ -59,35 +73,49 @@ class WebSocketClient:
                 await self.websocket.send(f"{now} - {self.user.username}:{message}")
                 
                 await self.update_listview()
-            except Exception as e:
+
+            except Exception:
                 await self.reconnect()
+
 
     @async_log
     async def receive_messages(self):
+        """
+        Fun that receives info from the server
+        and update the view
+        """
         while self.running:
             try:
                 async with self.lock:
-                    if self.websocket is None:
-                        await asyncio.sleep(1)
-                        continue
-
                     try:
+                        # check if the client is connected, else reconnect
+                        if self.websocket is None:
+                            await self.reconnect()
+                            continue
+
                         message = await asyncio.wait_for(
                             self.websocket.recv(),
                             timeout=1.0
                         )
                         await self.update_listview()
+
                     except asyncio.TimeoutError:
                         continue
-                        
-            except websockets.exceptions.ConnectionClosed as e:
+
+            except websockets.exceptions.ConnectionClosed:
                 await self.reconnect()
                 break
-            except Exception as e:
-                await asyncio.sleep(1)
+
+
+            except Exception:
+                asyncio.sleep(0.5)
+
 
     @async_log
     async def reconnect(self):
+        """
+        fun that reconnect the client to the server
+        """
         if not self.running:
             return
             
@@ -96,24 +124,33 @@ class WebSocketClient:
             await asyncio.sleep(3)
             await self.connect()
 
+
     @async_log
     async def disconnect(self):
+        """
+        fun that disconnect the client to the server
+        """
         async with self.lock:
             self.running = False
             
-            # Cancela la tarea de recepción
+            # cancel the task if its running
             if self.receive_task and not self.receive_task.done():
                 self.receive_task.cancel()
+
                 try:
                     await self.receive_task
+                    
                 except (asyncio.CancelledError, Exception):
                     pass
+
                 self.receive_task = None
             
-            # Cierra la conexión WebSocket
+            # close clients connection
             if self.websocket is not None:
                 try:
                     await self.websocket.close()
+
                 except Exception:
                     pass
+
                 self.websocket = None
