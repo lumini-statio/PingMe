@@ -31,7 +31,7 @@ async def broadcast(message, sender_websocket):
             client_num: int = index + 1
             break
 
-    message_to_send = f"Usuario {client_num}: {message}"
+    message_to_send = f"{message}"
 
     tasks: list = []
 

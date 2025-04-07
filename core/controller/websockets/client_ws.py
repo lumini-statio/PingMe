@@ -1,10 +1,14 @@
 import asyncio
 import websockets
 import flet as ft
+import traceback
+from plyer import notification
+from datetime import datetime
+
 from core.models.models import MessageModel
 from core.models.user.user import User
-from datetime import datetime
-from core.controller.logger import async_log
+from core.controller.notif_actions.subject import NotificationManager
+from core.controller.logger import async_log, log
 
 
 class WebSocketClient:
@@ -26,6 +30,8 @@ class WebSocketClient:
         uri = "ws://localhost:8080"
         try:
             await self.disconnect()
+
+            notification_manager = NotificationManager()
             
             async with self.lock:
                 self.websocket = await websockets.connect(
@@ -34,6 +40,8 @@ class WebSocketClient:
                     ping_timeout=60,
                 )
                 self.running = True
+
+                notification_manager.add_observer(self.websocket)
 
                 # start the receive task to listen for messages
                 self.receive_task = asyncio.create_task(self.receive_messages())
@@ -70,7 +78,7 @@ class WebSocketClient:
                     time_sent=now
                 )
                 
-                await self.websocket.send(f"{now} - {self.user.username}:{message}")
+                await self.websocket.send(f"User {self.user.username}: {message}")
                 
                 await self.update_listview()
 
@@ -97,7 +105,15 @@ class WebSocketClient:
                             self.websocket.recv(),
                             timeout=1.0
                         )
+
+                        msg_parts = message.split(sep=' ')
+
                         await self.update_listview()
+
+                        self.send_notification(
+                            client_name = f'{msg_parts[0]}',
+                            message = f'{msg_parts[1]}'
+                        )
 
                     except asyncio.TimeoutError:
                         continue
@@ -108,7 +124,19 @@ class WebSocketClient:
 
 
             except Exception:
-                asyncio.sleep(0.5)
+                await asyncio.sleep(0.5)
+    
+
+    @staticmethod
+    @log
+    def send_notification(client_name: str, message: str):
+
+        notification.notify(
+            title=f'{client_name} sent a message',
+            message=message,
+            timeout=5,
+            app_name='chat'
+        )
 
 
     @async_log
