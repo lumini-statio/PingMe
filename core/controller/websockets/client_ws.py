@@ -1,13 +1,12 @@
 import asyncio
 import websockets
 import flet as ft
-import traceback
 from plyer import notification
 from datetime import datetime
 
 from core.models.models import MessageModel
 from core.models.user.user import User
-from core.controller.notif_actions.subject import NotificationManager
+from core.controller.notif_manager import NotificationManager
 from core.controller.logger import async_log, log
 
 
