@@ -1,5 +1,8 @@
 class NotificationManager:
-
+    """
+    Part of observer pattern implemented
+    for notifications
+    """
     def __init__(self):
         self._observers = []
 
