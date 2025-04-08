@@ -38,8 +38,10 @@ class WebSocketClient:
                     ping_interval=20,
                     ping_timeout=60,
                 )
+                
                 self.running = True
 
+                # add client as notifications observer
                 notification_manager.add_observer(self.websocket)
 
                 # start the receive task to listen for messages
