@@ -29,6 +29,7 @@ def chat_view(page: ft.Page, user: User, update_view):
         
 
         for message in messages:
+            time = str(message.time_sent).replace('T', ' ')
             is_current_user = message.sender.username == user.username
             message_component = ft.Container(
                 content=ft.Column([
@@ -44,8 +45,7 @@ def chat_view(page: ft.Page, user: User, update_view):
                         color=ft.Colors.WHITE,
                     ),
                     ft.Text(
-                        message.time_sent,
-                        size=Styles.MIN_TEXT_SIZE.value,
+                        time,
                         color=ft.Colors.WHITE,
                         italic=True,
                     )
