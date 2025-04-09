@@ -60,7 +60,7 @@ class WebSocketClient:
         if not message.strip():
             return
 
-        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 
         async with self.lock:
             # check if the client is connected, else reconnect
@@ -108,12 +108,31 @@ class WebSocketClient:
                         )
 
                         msg_parts = message.split(sep='-')
+                        sender_name = msg_parts[0]
+                        message_text = msg_parts[1]
+                        sent = msg_parts[2]
+
+                        sender = UserModel.get_or_none(UserModel.username == sender_name)
+
+                        if sender:
+                            message_exists = MessageModel.select().where(
+                                (MessageModel.sender == sender.id) &
+                                (MessageModel.message == message_text) &
+                                (MessageModel.time_sent == sent)
+                            ).exists()
+
+                            if not message_exists:
+                                MessageModel.create(
+                                    message = message_text,
+                                    sender = sender.id,
+                                    time_sent = sent
+                                )
 
                         await self.update_listview()
 
                         self.send_notification(
-                            client_name = f'{msg_parts[0]}',
-                            message = f'{msg_parts[1]}'
+                            client_name = f'{sender_name}',
+                            message = f'{message_text}'
                         )
 
                     except asyncio.TimeoutError:
