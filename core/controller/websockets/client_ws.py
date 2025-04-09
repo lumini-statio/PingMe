@@ -4,7 +4,7 @@ import flet as ft
 from plyer import notification
 from datetime import datetime
 
-from core.models.models import MessageModel
+from core.models.models import MessageModel, UserModel
 from core.models.user.user import User
 from core.controller.notif_manager import NotificationManager
 from core.controller.logger import async_log, log
@@ -58,7 +58,7 @@ class WebSocketClient:
         if not message.strip():
             return
 
-        now = datetime.now().strftime('%H:%M:%S')
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         async with self.lock:
             # check if the client is connected, else reconnect
@@ -77,7 +77,7 @@ class WebSocketClient:
                     time_sent=now
                 )
                 
-                await self.websocket.send(f"User {self.user.username}: {message}")
+                await self.websocket.send(f"{self.user.username}-{message}-{now}")
                 
                 await self.update_listview()
 
@@ -105,7 +105,7 @@ class WebSocketClient:
                             timeout=1.0
                         )
 
-                        msg_parts = message.split(sep=' ')
+                        msg_parts = message.split(sep='-')
 
                         await self.update_listview()
 
@@ -131,7 +131,7 @@ class WebSocketClient:
     def send_notification(client_name: str, message: str):
 
         notification.notify(
-            title=f'{client_name} sent a message',
+            title=f'{client_name}',
             message=message,
             timeout=5,
             app_name='chat'
