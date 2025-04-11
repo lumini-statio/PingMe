@@ -93,7 +93,6 @@ def chat_view(page: ft.Page, user: User, update_view):
 
     msg_input = ft.TextField(
         width=610,
-        height=50,
         bgcolor=Styles.BG_COLOR.value,
         border_color=Styles.BORDER_COLOR.value,
         border_radius=Styles.BTN_RADIUS.value,
