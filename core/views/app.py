@@ -1,6 +1,6 @@
 import flet as ft
 from config import Styles
-from core.models.user.user import User
+from core.models.user.entity import User
 from core.views.enter import auth_view
 from core.views.chat import chat_view
 from core.controller.utils.logger import async_log

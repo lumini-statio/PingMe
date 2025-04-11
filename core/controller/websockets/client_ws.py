@@ -5,7 +5,7 @@ from plyer import notification
 from datetime import datetime
 
 from core.models.models import MessageModel, UserModel
-from core.models.user.user import User
+from core.models.user.entity import User
 from core.controller.utils.notif_manager import NotificationManager
 from core.controller.utils.logger import async_log, log
 

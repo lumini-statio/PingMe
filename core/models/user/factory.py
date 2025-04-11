@@ -1,4 +1,4 @@
-from core.models.user.user import User
+from core.models.user.entity import User
 from core.models.models import UserModel
 from core.controller.utils.hasher import hash_password
 from core.controller.utils.logger import log
