@@ -24,13 +24,6 @@ async def broadcast(message, sender_websocket):
     '''
     Broadcast a message to all connected clients except the sender.
     '''
-    client_num: int = None
-    
-    for index, client in enumerate(connected_clients):
-        if client == sender_websocket:
-            client_num: int = index + 1
-            break
-
     message_to_send = f"{message}"
 
     tasks: list = []

@@ -145,7 +145,7 @@ class WebSocketClient:
 
 
             except Exception:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.2)
     
 
     @staticmethod
@@ -170,7 +170,7 @@ class WebSocketClient:
             
         async with self.lock:
             await self.disconnect()
-            await asyncio.sleep(3)
+            await asyncio.sleep(0.5)
             await self.connect()
 
 
