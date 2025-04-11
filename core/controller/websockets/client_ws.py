@@ -8,6 +8,7 @@ from core.models.models import MessageModel, UserModel
 from core.models.user.entity import User
 from core.controller.utils.notif_manager import NotificationManager
 from core.controller.utils.logger import async_log, log
+from core.controller.websockets.server_ws import WebSocketServer
 from config import SERVER_PORT
 
 
@@ -20,6 +21,7 @@ class WebSocketClient:
         self.running = False
         self.receive_task = None
         self.lock = asyncio.Lock()
+        self.server = WebSocketServer()
 
 
     @async_log
@@ -63,29 +65,34 @@ class WebSocketClient:
 
         now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 
-        async with self.lock:
-            # check if the client is connected, else reconnect
-            if self.websocket is None:
-                await self.reconnect()
-                return
+        if self.server.is_port_in_use():
+            async with self.lock:
+                # check if the client is connected, else reconnect
+                if self.websocket is None:
+                    await self.reconnect()
+                    return
 
-            try:
-                """
-                create an instance in db of the message sent,
-                send it to the server and update the messages listview
-                """
-                MessageModel.create(
-                    message=message,
-                    sender=self.user.id,
-                    time_sent=now
-                )
-                
-                await self.websocket.send(f"{self.user.username}-{message}-{now}")
-                
-                await self.update_listview()
+                try:
+                    """
+                    create an instance in db of the message sent,
+                    send it to the server and update the messages listview
+                    """
+                    MessageModel.create(
+                        message=message,
+                        sender=self.user.id,
+                        time_sent=now
+                    )
+                    
+                    await self.websocket.send(f"{self.user.username}-{message}-{now}")
+                    
+                    await self.update_listview()
 
-            except Exception:
-                await self.reconnect()
+                except Exception:
+                    await self.reconnect()
+        
+        else:
+            await self.server.run_server()
+            await self.connect()
 
 
     @async_log
@@ -165,12 +172,16 @@ class WebSocketClient:
         """
         fun that reconnect the client to the server
         """
-        if not self.running:
-            return
-            
-        async with self.lock:
-            await self.disconnect()
-            await asyncio.sleep(0.5)
+        if self.server.is_port_in_use():
+            if not self.running:
+                return
+                
+            async with self.lock:
+                await self.disconnect()
+                await asyncio.sleep(0.5)
+                await self.connect()
+        else:
+            await self.server.run_server()
             await self.connect()
 
 
@@ -179,27 +190,28 @@ class WebSocketClient:
         """
         fun that disconnect the client to the server
         """
-        async with self.lock:
-            self.running = False
-            
-            # cancel the task if its running
-            if self.receive_task and not self.receive_task.done():
-                self.receive_task.cancel()
+        if self.server.is_port_in_use():
+            async with self.lock:
+                self.running = False
+                
+                # cancel the task if its running
+                if self.receive_task and not self.receive_task.done():
+                    self.receive_task.cancel()
 
-                try:
-                    await self.receive_task
-                    
-                except (asyncio.CancelledError, Exception):
-                    pass
+                    try:
+                        await self.receive_task
+                        
+                    except (asyncio.CancelledError, Exception):
+                        pass
 
-                self.receive_task = None
-            
-            # close clients connection
-            if self.websocket is not None:
-                try:
-                    await self.websocket.close()
+                    self.receive_task = None
+                
+                # close clients connection
+                if self.websocket is not None:
+                    try:
+                        await self.websocket.close()
 
-                except Exception:
-                    pass
+                    except (Exception):
+                        pass
 
-                self.websocket = None
+                    self.websocket = None
