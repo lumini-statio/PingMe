@@ -5,6 +5,8 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
+SERVER_PORT = 8080
+
 """
 Define constants
 """

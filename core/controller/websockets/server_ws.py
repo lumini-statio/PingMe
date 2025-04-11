@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 from core.controller.utils.logger import async_log
+from config import SERVER_PORT
 
 
 # List to store connected clients
@@ -53,7 +54,7 @@ async def server():
     async with websockets.serve(
         handle_client, 
         "localhost", 
-        8080,
+        SERVER_PORT,
         ping_interval=20,
         ping_timeout=60):
 

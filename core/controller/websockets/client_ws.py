@@ -8,6 +8,7 @@ from core.models.models import MessageModel, UserModel
 from core.models.user.entity import User
 from core.controller.utils.notif_manager import NotificationManager
 from core.controller.utils.logger import async_log, log
+from config import SERVER_PORT
 
 
 class WebSocketClient:
@@ -26,7 +27,7 @@ class WebSocketClient:
         """
         fun that connect the client to the server
         """
-        uri = "ws://localhost:8080"
+        uri = f"ws://localhost:{SERVER_PORT}"
         try:
             await self.disconnect()
 
