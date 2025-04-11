@@ -1,7 +1,8 @@
 import flet as ft
 from enum import Enum
-import os
 from pathlib import Path
+
+
 
 BASE_DIR = Path(__file__).resolve().parent
 
