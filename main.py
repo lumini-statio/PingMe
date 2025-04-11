@@ -3,7 +3,6 @@ from core.controller.websockets.server_ws import WebSocketServer
 
 import flet as ft
 import threading
-import asyncio
 
 
 if __name__ == '__main__':
