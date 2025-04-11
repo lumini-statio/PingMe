@@ -9,8 +9,8 @@ import socket
 
 class WebSocketServer:
     def __init__(self):
-        # List to store connected clients
         self.connected_clients = []
+        self.stop_event = asyncio.Event()
     
 
     @async_log
@@ -64,8 +64,11 @@ class WebSocketServer:
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
             sock.settimeout(1)
             return sock.connect_ex(('localhost', SERVER_PORT)) == 0
-        
+    
 
     def run_server(self):
         if not self.is_port_in_use():
-            asyncio.run(self.server())
+            try:
+                asyncio.run(self.server())
+            finally:
+                self.stop_event.set()
