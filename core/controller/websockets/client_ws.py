@@ -6,8 +6,8 @@ from datetime import datetime
 
 from core.models.models import MessageModel, UserModel
 from core.models.user.user import User
-from core.controller.notif_manager import NotificationManager
-from core.controller.logger import async_log, log
+from core.controller.utils.notif_manager import NotificationManager
+from core.controller.utils.logger import async_log, log
 
 
 class WebSocketClient:

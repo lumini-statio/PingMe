@@ -1,7 +1,7 @@
 from core.models.user.user import User
 from core.models.models import UserModel
-from core.models.user.hasher import hash_password
-from core.controller.logger import log
+from core.controller.utils.hasher import hash_password
+from core.controller.utils.logger import log
 
 
 class UserFactory():

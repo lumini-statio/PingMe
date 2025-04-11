@@ -3,7 +3,7 @@ from config import Styles
 from core.models.models import MessageModel, UserModel
 from core.models.user.user import User
 from core.controller.websockets.client_ws import WebSocketClient
-from core.controller.logger import log, async_log
+from core.controller.utils.logger import log, async_log
 
 
 @log

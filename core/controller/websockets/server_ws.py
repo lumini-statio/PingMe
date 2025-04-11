@@ -1,7 +1,6 @@
 import asyncio
 import websockets
-from core.controller.logger import async_log
-import traceback
+from core.controller.utils.logger import async_log
 
 
 # List to store connected clients

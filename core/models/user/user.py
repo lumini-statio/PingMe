@@ -1,7 +1,7 @@
 from core.state.user_states import UserState, NotAuthenticatedState, AuthenticatedState
-from core.models.user.hasher import hash_password
+from core.controller.utils.hasher import hash_password
 from core.models.models import UserModel
-from core.controller.logger import log
+from core.controller.utils.logger import log
 import traceback
 
 

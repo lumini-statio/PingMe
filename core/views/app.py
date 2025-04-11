@@ -3,9 +3,7 @@ from config import Styles
 from core.models.user.user import User
 from core.views.enter import auth_view
 from core.views.chat import chat_view
-from core.controller.logger import async_log
-import traceback
-import asyncio
+from core.controller.utils.logger import async_log
 
 
 @async_log

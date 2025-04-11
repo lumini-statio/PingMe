@@ -3,7 +3,7 @@ from config import Styles
 from core.models.user.user import User
 from core.models.user.user_factory import UserFactory
 from core.models.models import UserModel
-from core.controller.logger import log, async_log
+from core.controller.utils.logger import log, async_log
 
 
 @log

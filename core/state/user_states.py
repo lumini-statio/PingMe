@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from core.controller.logger import log
+from core.controller.utils.logger import log
 
 
 class UserState(ABC):

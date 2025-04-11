@@ -1,5 +1,5 @@
 import hashlib
-from core.controller.logger import log
+from core.controller.utils.logger import log
 
 
 @log
