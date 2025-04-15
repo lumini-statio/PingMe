@@ -9,11 +9,11 @@ from core.controller.utils.logger import async_log
 @async_log
 async def main_view(page: ft.Page):
     page.title = 'Chat in network'
-    page.window_center()
+    page.window.center()
     page.window.resizable = False
     page.window.maximizable = False
-    page.window_width = Styles.PAGE_WIDTH.value
-    page.window_height = Styles.PAGE_HEIGHT.value
+    page.window.width = Styles.PAGE_WIDTH.value
+    page.window.height = Styles.PAGE_HEIGHT.value
     page.padding = 0
     page.bgcolor = ft.Colors.BLUE_GREY_900
     page.theme_mode = ft.ThemeMode.DARK
@@ -44,7 +44,7 @@ async def main_view(page: ft.Page):
             page.overlay.append(auth_components["dialog"])
             page.add(current_view)
 
-        await page.update_async()
+        await page.update()
 
     await update_view()
     
