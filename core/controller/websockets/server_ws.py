@@ -52,10 +52,12 @@ class WebSocketServer:
         '''
         async with websockets.serve(
             self.handle_client, 
-            "localhost", 
+            "0.0.0.0", 
             SERVER_PORT,
             ping_interval=20,
             ping_timeout=60):
+
+            await self.stop_event.wait()
 
             await asyncio.Future()
 

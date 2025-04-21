@@ -3,6 +3,7 @@ import websockets
 import flet as ft
 from plyer import notification
 from datetime import datetime
+import threading
 
 from core.models.models import MessageModel, UserModel
 from core.models.user.entity import User
@@ -40,6 +41,8 @@ class WebSocketClient:
                     uri,
                     ping_interval=20,
                     ping_timeout=60,
+                    open_timeout=5,
+                    close_timeout=1
                 )
                 
                 self.running = True
@@ -91,7 +94,11 @@ class WebSocketClient:
                     await self.reconnect()
         
         else:
-            await self.server.run_server()
+            threading.Thread(
+                target=self.server.run_server,
+                daemon=True
+            ).start()
+
             await self.connect()
 
 
@@ -101,58 +108,72 @@ class WebSocketClient:
         Fun that receives info from the server
         and update the view
         """
-        while self.running:
-            try:
-                async with self.lock:
-                    try:
-                        # check if the client is connected, else reconnect
-                        if self.websocket is None:
-                            await self.reconnect()
+        if self.server.is_port_in_use():
+            while self.running:
+                try:
+                    async with self.lock:
+                        try:
+                            # check if the client is connected, else reconnect
+                            if self.websocket is None:
+                                await self.reconnect()
+                                continue
+
+                            message = await asyncio.wait_for(
+                                self.websocket.recv(),
+                                timeout=1.0
+                            )
+
+                            msg_parts = message.split(sep='-')
+                            sender_name = msg_parts[0]
+                            message_text = msg_parts[1]
+                            sent = msg_parts[2]
+
+                            sender = UserModel.get_or_none(UserModel.username == sender_name)
+
+                            if sender:
+                                message_exists = MessageModel.select().where(
+                                    (MessageModel.sender == sender.id) &
+                                    (MessageModel.message == message_text) &
+                                    (MessageModel.time_sent == sent)
+                                ).exists()
+
+                                if not message_exists:
+                                    MessageModel.create(
+                                        message = message_text,
+                                        sender = sender.id,
+                                        time_sent = sent
+                                    )
+
+                            await self.update_listview()
+
+                            self.send_notification(
+                                client_name = f'{sender_name}',
+                                message = f'{message_text}'
+                            )
+
+                        except asyncio.TimeoutError:
                             continue
 
-                        message = await asyncio.wait_for(
-                            self.websocket.recv(),
-                            timeout=1.0
-                        )
-
-                        msg_parts = message.split(sep='-')
-                        sender_name = msg_parts[0]
-                        message_text = msg_parts[1]
-                        sent = msg_parts[2]
-
-                        sender = UserModel.get_or_none(UserModel.username == sender_name)
-
-                        if sender:
-                            message_exists = MessageModel.select().where(
-                                (MessageModel.sender == sender.id) &
-                                (MessageModel.message == message_text) &
-                                (MessageModel.time_sent == sent)
-                            ).exists()
-
-                            if not message_exists:
-                                MessageModel.create(
-                                    message = message_text,
-                                    sender = sender.id,
-                                    time_sent = sent
-                                )
-
-                        await self.update_listview()
-
-                        self.send_notification(
-                            client_name = f'{sender_name}',
-                            message = f'{message_text}'
-                        )
-
-                    except asyncio.TimeoutError:
-                        continue
-
-            except websockets.exceptions.ConnectionClosed:
-                await self.reconnect()
-                break
+                except websockets.exceptions.ConnectionClosed:
+                    threading.Thread(
+                        target=self.server.run_server,
+                        daemon=True
+                    ).start()
+                    
+                    await self.connect()
+                    break
 
 
-            except Exception:
-                await asyncio.sleep(0.2)
+                except Exception:
+                    await asyncio.sleep(0.2)
+
+
+        else:
+            threading.Thread(
+                target=self.server.run_server,
+                daemon=True
+            ).start()
+            await self.connect()
     
 
     @staticmethod
@@ -181,7 +202,10 @@ class WebSocketClient:
                 await asyncio.sleep(0.5)
                 await self.connect()
         else:
-            await self.server.run_server()
+            threading.Thread(
+                target=self.server.run_server,
+                daemon=True
+            ).start()
             await self.connect()
 
 
