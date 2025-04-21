@@ -47,8 +47,14 @@ def auth_view(page: ft.Page, user: User, update_view):
         title=ft.Text("Register new account"),
         content=ft.Column([username_register_field, password_register_field], tight=True),
         actions=[
-            ft.TextButton('Close', on_click=lambda e: toggle_register(False)),
-            ft.ElevatedButton('Submit', on_click=lambda e: _handle_register(e))
+            ft.TextButton(
+                'Close',
+                on_click=lambda e: toggle_register(False)
+            ),
+            ft.ElevatedButton(
+                'Submit',
+                on_click=lambda e: _handle_register(e)
+            )
         ],
         actions_alignment=ft.MainAxisAlignment.END
     )
@@ -86,8 +92,11 @@ def auth_view(page: ft.Page, user: User, update_view):
 
             if UserModel.select().where(UserModel.username == username_register_field.value).exists():
 
-                dialog = ft.AlertDialog(title=ft.Text('Cannot use these credentials'))
-                page.dialog = dialog 
+                dialog = ft.AlertDialog(
+                    title=ft.Text('Cannot use these credentials')
+                )
+
+                page.overlay.append(dialog)
                 dialog.open = True
                 page.update()
 
@@ -105,10 +114,10 @@ def auth_view(page: ft.Page, user: User, update_view):
                 username_register_field.value = ''
                 password_register_field.value = ''
 
-                page.dialog = dialog 
+                page.overlay.append(dialog)
                 dialog.open = True
 
-                await page.update()
+                page.update()
 
 
     @log

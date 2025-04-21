@@ -44,7 +44,7 @@ async def main_view(page: ft.Page):
             page.overlay.append(auth_components["dialog"])
             page.add(current_view)
 
-        await page.update()
+        page.update()
 
     await update_view()
     

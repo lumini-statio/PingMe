@@ -57,7 +57,7 @@ def chat_view(page: ft.Page, user: User, update_view):
             )
             list_messages.controls.append(message_component)
         
-        await list_messages.update()
+        list_messages.update()
 
 
     @async_log
@@ -65,7 +65,7 @@ def chat_view(page: ft.Page, user: User, update_view):
         if msg_input.value.strip():
             await ws_client.send_message(msg_input.value)
             msg_input.value = ""
-            await msg_input.update()
+            msg_input.update()
 
     # Inicializar el cliente WebSocket después de definir handle_send_message
     ws_client = WebSocketClient(page, user, update_listview)
@@ -85,7 +85,7 @@ def chat_view(page: ft.Page, user: User, update_view):
 
     # Ahora define los controles que usan las funciones
     btn_logout = ft.FloatingActionButton(
-        icon=ft.icons.LOGOUT,
+        icon=ft.Icons.LOGOUT,
         on_click=handle_logout,
         shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS),
         visible=True
@@ -105,7 +105,7 @@ def chat_view(page: ft.Page, user: User, update_view):
     )
 
     btn_send = ft.FloatingActionButton(
-        icon=ft.icons.SEND,
+        icon=ft.Icons.SEND,
         shape=ft.RoundedRectangleBorder(radius=Styles.BTN_RADIUS.value),
         width=45,
         height=45,
@@ -119,7 +119,7 @@ def chat_view(page: ft.Page, user: User, update_view):
                 btn_logout,
                 ft.Container(
                     content=list_messages,
-                    bgcolor=ft.colors.BLUE_GREY_700,
+                    bgcolor=ft.Colors.BLUE_GREY_700,
                     border_radius=5,
                     padding=10,
                     expand=True,
