@@ -19,6 +19,7 @@ logging.basicConfig(
     datefmt='%DD/%mm/%Y %H:%M:%S'
 )
 
+
 #logs sincronos
 def log(fun):
     @wraps(fun)
@@ -27,8 +28,9 @@ def log(fun):
             result = fun(*args, **kwargs)
             logging.info(f"Funcion {fun.__name__} completada. Retornó: {result}")
             return result
-        except Exception as e:
-            logging.error(f"Error en {fun.__name__}:\n{e}")
+        
+        except Exception:
+            logging.error(f"Error en {fun.__name__}:\n{traceback.format_exc()}")
             raise
     
     return wrapper
@@ -42,8 +44,9 @@ def async_log(fun):
             result = await fun(*args, **kwargs)
             logging.info(f"Funcion {fun.__name__} completada. Retornó: {result}")
             return result
-        except Exception as e:
-            logging.error(f"Error en {fun.__name__}:\n{e}")
+            
+        except Exception:
+            logging.error(f"Error en {fun.__name__}:\n{traceback.format_exc()}")
             raise
     
     return wrapper
