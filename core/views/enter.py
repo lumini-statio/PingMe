@@ -76,7 +76,7 @@ def auth_view(page: ft.Page, user: User, update_view):
             await update_view()
         else:
             login_error_text.value = 'Invalid username or password'
-            await login_error_text.update()
+            login_error_text.update()
 
     btn_register = ft.ElevatedButton(
         'Submit',

@@ -1,4 +1,6 @@
 import flet as ft
+import asyncio
+
 from config import Styles
 from core.models.models import MessageModel, UserModel
 from core.models.user.entity import User
@@ -44,10 +46,23 @@ def chat_view(page: ft.Page, user: User, update_view):
                         size=Styles.MID_TEXT_SIZE.value,
                         color=ft.Colors.WHITE,
                     ),
-                    ft.Text(
-                        time,
-                        color=ft.Colors.WHITE,
-                        italic=True,
+                    ft.Row([
+                        ft.Text(
+                            time,
+                            color=ft.Colors.WHITE,
+                            italic=True,
+                        ),
+                        ft.IconButton(
+                            icon=ft.Icons.DELETE,
+                            style=ft.ButtonStyle(bgcolor=ft.Colors.TRANSPARENT),
+                            on_click=lambda *args: \
+                                asyncio.run(
+                                    handle_delete(message)
+                                )
+                        ) if is_current_user else ft.Text(''),
+                    ],
+                    expand=True,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                     )
                 ]),
                 bgcolor=ft.Colors.BLACK12 if not is_current_user else ft.Colors.BLUE_900,
@@ -55,6 +70,7 @@ def chat_view(page: ft.Page, user: User, update_view):
                 border_radius=10,
                 margin=5,
             )
+            
             list_messages.controls.append(message_component)
         
         list_messages.update()
@@ -73,15 +89,24 @@ def chat_view(page: ft.Page, user: User, update_view):
 
     @async_log
     async def handle_logout(e):
-        await ws_client.disconnect()
-        user.state.change_user_state(user)
-        await update_view()
+        try:
+            await ws_client.disconnect()
+            
+        finally:
+            user.state.change_user_state(user)
+            await update_view()
+    
+
+    @async_log
+    async def handle_delete(message):
+        await ws_client.delete_message(message.id)
 
 
     @async_log
     async def load_chat():
         await update_listview()
         await ws_client.connect()
+        
 
     # Ahora define los controles que usan las funciones
     btn_logout = ft.FloatingActionButton(
