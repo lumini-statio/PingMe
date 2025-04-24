@@ -26,10 +26,10 @@ def chat_view(page: ft.Page, user: User, update_view):
             session.query(MessageModel)\
             .order_by(MessageModel.time_sent)\
             .all()
-            
+        
+        print(messages)
 
         for message in messages:
-            print(message)
             time = str(message.time_sent).replace('T', ' ')
             is_current_user = message.sender.username == user.username
             message_component = ft.Container(

@@ -1,10 +1,11 @@
 import asyncio
 import websockets
+import socket
+import json
+
 from core.controller.utils.logger import async_log
 from config import SERVER_PORT
 from contextlib import closing
-import socket
-
 
 
 class WebSocketServer:
@@ -35,10 +36,13 @@ class WebSocketServer:
 
         # send the message to all clients connected except the sender
         for client in self.connected_clients:
+
             if client == sender_websocket:
                 continue
+            
             try:
                 tasks.append(client.send(message_to_send))
+
             except websockets.exceptions.ConnectionClosed as e:
                 self.connected_clients.remove(client)
 
@@ -51,7 +55,7 @@ class WebSocketServer:
         Server Starter function.
         '''
         async with websockets.serve(
-            self.handle_client, 
+            self.handle_client,
             "0.0.0.0", 
             SERVER_PORT,
             ping_interval=20,

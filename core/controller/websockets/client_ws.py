@@ -5,7 +5,7 @@ from plyer import notification
 from datetime import datetime
 import threading
 
-from core.models.models import MessageModel, UserModel
+from core.models.models import MessageModel, UserModel, session
 from core.models.user.entity import User
 from core.controller.utils.notif_manager import NotificationManager
 from core.controller.utils.logger import async_log, log
@@ -37,7 +37,9 @@ class WebSocketClient:
         """
         fun that connect the client to the server
         """
+
         uri = f"ws://localhost:{SERVER_PORT}"
+
         try:
             await self.disconnect()
 
@@ -75,34 +77,9 @@ class WebSocketClient:
         if not message.strip():
             return
 
-        now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+        now = datetime.now().strftime('%Y/%m/%d %H:%M:%S.%f')
 
-        if self.server.is_port_in_use():
-            async with (await self.lock):
-                # check if the client is connected, else reconnect
-                if self.websocket is None:
-                    await self.reconnect()
-                    return
-
-                try:
-                    """
-                    create an instance in db of the message sent,
-                    send it to the server and update the messages listview
-                    """
-                    MessageModel.create(
-                        message=message,
-                        sender=self.user.id,
-                        time_sent=now
-                    )
-                    
-                    await self.websocket.send(f"{self.user.username}-{message}-{now}")
-                    
-                    await self.update_listview()
-
-                except Exception:
-                    await self.reconnect()
-        
-        else:
+        if not self.server.is_port_in_use():
             threading.Thread(
                 target=self.server.run_server,
                 daemon=True
@@ -110,6 +87,33 @@ class WebSocketClient:
 
             await self.connect()
 
+        async with (await self.lock):
+            # check if the client is connected, else reconnect
+            if self.websocket is None:
+                await self.reconnect()
+                return
+
+            try:
+                """
+                create an instance in db of the message sent,
+                send it to the server and update the messages listview
+                """
+                msg = MessageModel(
+                    message=message,
+                    sender=self.user.id,
+                    time_sent=now
+                )
+
+                session.add(msg)
+                session.commit()
+                
+                await self.websocket.send(f"{self.user.username}-{message}-{now}")
+                
+                await self.update_listview()
+
+            except Exception:
+                await self.reconnect()
+        
 
     @async_log
     async def receive_messages(self):
@@ -117,84 +121,96 @@ class WebSocketClient:
         Fun that receives info from the server
         and update the view
         """
-        if self.server.is_port_in_use():
-            while self.running:
-                try:
-                    async with (await self.lock):
-                        try:
-                            # check if the client is connected, else reconnect
-                            if self.websocket is None:
-                                await self.reconnect()
-                                continue
 
-                            message = await asyncio.wait_for(
-                                self.websocket.recv(),
-                                timeout=1.0
-                            )
-
-                            msg_parts = message.split(sep='-')
-
-                            if 'DELETE' in msg_parts[0]:
-                                await MessageModel.delete_by_id(int(msg_parts[1]))
-
-                                return
-
-                            sender_name = msg_parts[0]
-                            message_text = msg_parts[1]
-                            sent = msg_parts[2]
-
-                            sender = UserModel.get_or_none(UserModel.username == sender_name)
-
-                            if sender:
-                                message_exists = MessageModel.select().where(
-                                    (MessageModel.sender == sender.id) &
-                                    (MessageModel.message == message_text) &
-                                    (MessageModel.time_sent == sent)
-                                ).exists()
-
-                                if not message_exists:
-                                    MessageModel.create(
-                                        message = message_text,
-                                        sender = sender.id,
-                                        time_sent = sent
-                                    )
-
-                            await self.update_listview()
-
-                            self.send_notification(
-                                client_name = f'{sender_name}',
-                                message = f'{message_text}'
-                            )
-
-                        except asyncio.TimeoutError:
-                            continue
-
-                except websockets.exceptions.ConnectionClosed:
-                    threading.Thread(
-                        target=self.server.run_server,
-                        daemon=True
-                    ).start()
-                    
-                    await self.connect()
-                    break
-
-
-                except Exception:
-                    await asyncio.sleep(0.2)
-
-
-        else:
+        if not self.server.is_port_in_use():
             threading.Thread(
                 target=self.server.run_server,
                 daemon=True
             ).start()
+
             await self.connect()
-    
+
+        while self.running:
+            try:
+                async with (await self.lock):
+                    # check if the client is connected, else reconnect
+                    if self.websocket is None:
+                        await self.reconnect()
+                        continue
+
+                    message = await asyncio.wait_for(
+                        self.websocket.recv(),
+                        timeout=1.0
+                    )
+
+                    msg_parts = message.split(sep='-')
+
+                    if 'DELETE' in msg_parts[0]:
+                        session.query(MessageModel)\
+                        .filter_by(
+                            id=int(msg_parts[1])
+                        ).first()
+
+                        return
+
+                    sender_name = msg_parts[0]
+                    message_text = msg_parts[1]
+                    sent = msg_parts[2]
+
+                    sender = session.query(UserModel)\
+                        .filter_by(
+                            username = sender_name
+                        ).first()
+
+                    if sender is None:
+                        self.send_notification(
+                            client_name = 'APP',
+                            message = 'It was Problem when trying to send a message'
+                        )
+
+                        return
+                    
+                    message_exists = session.query(MessageModel).filter_by(
+                        sender = sender.id,
+                        message = message_text,
+                        time_sent = sent
+                    ).exists()
+
+                    if not message_exists:
+                        msg = MessageModel(
+                            message = message_text,
+                            sender = sender.id,
+                            time_sent = sent
+                        )
+
+                        session.add(msg)
+                        session.commit()
+
+                    await self.update_listview()
+
+                    self.send_notification(
+                        client_name = f'{sender_name}',
+                        message = f'{message_text}'
+                    )
+
+            except websockets.exceptions.ConnectionClosed:
+                threading.Thread(
+                    target=self.server.run_server,
+                    daemon=True
+                ).start()
+
+                await self.connect()
+                break
+
+            except (asyncio.TimeoutError, Exception):
+                await asyncio.sleep(0.2)
+                continue
+
 
     @async_log
     async def delete_message(self, message_id):
         try:
-            MessageModel.delete_by_id(int(message_id))
+            session.query(MessageModel).filter_by(id=int(message_id)).firts()
             await self.update_listview()
             await self.send_message(f'DELETE-{message_id}')
 
@@ -219,19 +235,19 @@ class WebSocketClient:
         """
         fun that reconnect the client to the server
         """
-        if self.server.is_port_in_use():
-            if not self.running:
-                return
-                
-            async with (await self.lock):
-                await self.disconnect()
-                await asyncio.sleep(0.5)
-                await self.connect()
-        else:
+        if not self.server.is_port_in_use():
             threading.Thread(
                 target=self.server.run_server,
                 daemon=True
             ).start()
+            await self.connect()
+
+        if not self.running:
+            return
+            
+        async with (await self.lock):
+            await self.disconnect()
+            await asyncio.sleep(0.5)
             await self.connect()
 
 
@@ -240,30 +256,39 @@ class WebSocketClient:
         """
         fun that disconnect the client to the server
         """
-        if self.server.is_port_in_use()\
-        and self._lock is not None:
+        if not self.server.is_port_in_use():
+            threading.Thread(
+                target=self.server.run_server,
+                daemon=True
+            ).start()
+            await self.connect()
+
+
+        if self._lock is None:
+            return
+
+
+        async with (await self.lock):
+            self.running = False
             
-            async with (await self.lock):
-                self.running = False
-                
-                # cancel the task if its running
-                if self.receive_task and not self.receive_task.done():
-                    self.receive_task.cancel()
+            # cancel the task if its running
+            if self.receive_task and not self.receive_task.done():
+                self.receive_task.cancel()
 
-                    try:
-                        await self.receive_task
-                        
-                    except (asyncio.CancelledError, Exception):
-                        pass
+                try:
+                    await self.receive_task
+                    
+                except (asyncio.CancelledError, Exception):
+                    pass
 
-                    self.receive_task = None
-                
-                # close clients connection
-                if self.websocket is not None:
-                    try:
-                        await self.websocket.close()
+                self.receive_task = None
+            
+            # close clients connection
+            if self.websocket is not None:
+                try:
+                    await self.websocket.close()
 
-                    except (Exception):
-                        pass
+                except (Exception):
+                    pass
 
-                    self.websocket = None
+                self.websocket = None
