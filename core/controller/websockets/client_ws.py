@@ -51,6 +51,8 @@ class WebSocketClient:
                     open_timeout=5,
                     close_timeout=1
                 )
+
+                print(f'Connected to {uri}')
                 
                 self.running = True
 
