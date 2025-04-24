@@ -21,9 +21,16 @@ class WebSocketClient:
         self.websocket = None
         self.running = False
         self.receive_task = None
-        self.lock = asyncio.Lock()
+        self._lock = None
         self.server = WebSocketServer()
 
+
+    @property
+    async def lock(self):
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        
+        return self._lock
 
     @async_log
     async def connect(self):
@@ -36,7 +43,7 @@ class WebSocketClient:
 
             notification_manager = NotificationManager()
             
-            async with self.lock:
+            async with (await self.lock):
                 self.websocket = await websockets.connect(
                     uri,
                     ping_interval=20,
@@ -69,7 +76,7 @@ class WebSocketClient:
         now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 
         if self.server.is_port_in_use():
-            async with self.lock:
+            async with (await self.lock):
                 # check if the client is connected, else reconnect
                 if self.websocket is None:
                     await self.reconnect()
@@ -111,7 +118,7 @@ class WebSocketClient:
         if self.server.is_port_in_use():
             while self.running:
                 try:
-                    async with self.lock:
+                    async with (await self.lock):
                         try:
                             # check if the client is connected, else reconnect
                             if self.websocket is None:
@@ -124,6 +131,12 @@ class WebSocketClient:
                             )
 
                             msg_parts = message.split(sep='-')
+
+                            if 'DELETE' in msg_parts[0]:
+                                await MessageModel.delete_by_id(int(msg_parts[1]))
+
+                                return
+
                             sender_name = msg_parts[0]
                             message_text = msg_parts[1]
                             sent = msg_parts[2]
@@ -176,6 +189,17 @@ class WebSocketClient:
             await self.connect()
     
 
+    @async_log
+    async def delete_message(self, message_id):
+        try:
+            MessageModel.delete_by_id(int(message_id))
+            await self.update_listview()
+            await self.send_message(f'DELETE-{message_id}')
+
+        except Exception:
+            pass
+
+
     @staticmethod
     @log
     def send_notification(client_name: str, message: str):
@@ -197,7 +221,7 @@ class WebSocketClient:
             if not self.running:
                 return
                 
-            async with self.lock:
+            async with (await self.lock):
                 await self.disconnect()
                 await asyncio.sleep(0.5)
                 await self.connect()
@@ -214,8 +238,10 @@ class WebSocketClient:
         """
         fun that disconnect the client to the server
         """
-        if self.server.is_port_in_use():
-            async with self.lock:
+        if self.server.is_port_in_use()\
+        and self._lock is not None:
+            
+            async with (await self.lock):
                 self.running = False
                 
                 # cancel the task if its running
