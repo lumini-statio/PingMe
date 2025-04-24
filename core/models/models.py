@@ -1,34 +1,44 @@
-from peewee import (Model,
-                    CharField,
-                    ForeignKeyField,
-                    DateTimeField,
-                    SqliteDatabase)
+import sqlalchemy as sa
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
-DB = SqliteDatabase('chat.db')
-
-class UserModel(Model):
-    username = CharField(unique=True)
-    password = CharField()
-
-    class Meta:
-        database = DB
-        table_name = 'users'
+import datetime
 
 
-class MessageModel(Model):
-    message = CharField()
-    sender = ForeignKeyField(
-        model=UserModel,
-        backref='messages',
-        on_delete='CASCADE',
-        on_update='CASCADE'
-    )
-    time_sent = DateTimeField()
+engine = sa.create_engine("sqlite:///chat.db")
 
-    class Meta:
-        database = DB
-        table_name = 'messages'
+Base = declarative_base()
 
 
-DB.connect()
-DB.create_tables([UserModel, MessageModel])
+class UserModel(Base):
+    __tablename__ = 'users'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    username = sa.Column(sa.String)
+    password = sa.Column(sa.String)
+    messages = relationship("MessageModel", backref='user')
+
+
+class MessageModel(Base):
+    __tablename__ = 'messages'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    message = sa.Column(sa.String)
+    time_sent = sa.Column(sa.DateTime)
+    sender = sa.Column(sa.Integer, sa.ForeignKey('users.id'))
+
+
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
+
+user = session.query(UserModel).filter_by(username='test').first()
+
+now = datetime.datetime.now()
+now.microsecond = 0
+
+msg1 = MessageModel(message='holaa', time_sent=now, sender=user.id)
+msg2 = MessageModel(message='buenas', time_sent=now, sender=user)
+session.add_all([msg1, msg2])
+
+session.commit()
