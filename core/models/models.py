@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 import datetime, time
 
 
-engine = sa.create_engine("sqlite:///chat.db")
+engine = sa.create_engine("sqlite:///chat_android.db")
 
 Base = declarative_base()
 
