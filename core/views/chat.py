@@ -32,6 +32,7 @@ def chat_view(page: ft.Page, user: User, update_view):
         for message in messages:
             time = str(message.time_sent).replace('T', ' ')
             is_current_user = message.sender.username == user.username
+            
             message_component = ft.Container(
                 content=ft.Column([
                     ft.Text(
@@ -78,9 +79,19 @@ def chat_view(page: ft.Page, user: User, update_view):
     @async_log
     async def handle_send_message(e):
         if msg_input.value.strip():
-            await ws_client.send_message(msg_input.value)
-            msg_input.value = ""
-            msg_input.update()
+
+            btn_send.disabled = True
+            btn_send.update()
+
+            try:
+                await ws_client.send_message(msg_input.value)
+                msg_input.value = ""
+                msg_input.update()
+
+            finally:
+                btn_send.disabled = False
+                btn_send.update()
+
 
     # Inicializar el cliente WebSocket después de definir handle_send_message
     ws_client = WebSocketClient(page, user, update_listview)

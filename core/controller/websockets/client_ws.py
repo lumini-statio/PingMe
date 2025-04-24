@@ -73,9 +73,13 @@ class WebSocketClient:
         """
         Fun to send messages to the server
         """
+        print(f'intento 1 {message}')
+
         # if the message is empty, dont send it
         if not message.strip():
             return
+
+        print(f'intento 2 {message}')
 
         now = datetime.now().strftime('%Y/%m/%d %H:%M:%S.%f')
 
@@ -86,14 +90,21 @@ class WebSocketClient:
             ).start()
 
             await self.connect()
+        
+        print(f'intento 3 {message}')
 
         async with (await self.lock):
+            print(f'intento 4 {message}')
+
             # check if the client is connected, else reconnect
             if self.websocket is None:
                 await self.reconnect()
                 return
 
             try:
+                print(f'intento 5 {message}')
+
+
                 """
                 create an instance in db of the message sent,
                 send it to the server and update the messages listview
@@ -106,6 +117,8 @@ class WebSocketClient:
 
                 session.add(msg)
                 session.commit()
+
+                print(f"intento 6 {self.user.username}-{message}-{now}")
                 
                 await self.websocket.send(f"{self.user.username}-{message}-{now}")
                 
