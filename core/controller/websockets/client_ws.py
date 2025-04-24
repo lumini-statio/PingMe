@@ -1,9 +1,9 @@
 import asyncio
 import websockets
 import flet as ft
+import threading
 from plyer import notification
 from datetime import datetime
-import threading
 
 from core.models.models import MessageModel, UserModel
 from core.models.user.entity import User
