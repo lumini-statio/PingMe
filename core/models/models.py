@@ -1,7 +1,7 @@
 import sqlalchemy as sa
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base
-
-import datetime, time
+from sqlalchemy.orm import sessionmaker,\
+                        relationship,\
+                        declarative_base
 
 
 engine = sa.create_engine("sqlite:///chat_android.db")
