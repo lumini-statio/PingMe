@@ -5,7 +5,7 @@ from plyer import notification
 from datetime import datetime
 import threading
 
-from core.models.models import MessageModel, UserModel
+from core.models.models import MessageModel, UserModel, session
 from core.models.user.entity import User
 from core.controller.utils.notif_manager import NotificationManager
 from core.controller.utils.logger import async_log, log
@@ -87,11 +87,14 @@ class WebSocketClient:
                     create an instance in db of the message sent,
                     send it to the server and update the messages listview
                     """
-                    MessageModel.create(
+                    msg = MessageModel(
                         message=message,
                         sender=self.user.id,
                         time_sent=now
                     )
+
+                    session.add(msg)
+                    session.commit()
                     
                     await self.websocket.send(f"{self.user.username}-{message}-{now}")
                     
@@ -133,7 +136,10 @@ class WebSocketClient:
                             msg_parts = message.split(sep='-')
 
                             if 'DELETE' in msg_parts[0]:
-                                await MessageModel.delete_by_id(int(msg_parts[1]))
+                                msg = session.query(MessageModel).filter_by(id=int(msg_parts[1]))
+
+                                session.delete(msg)
+                                session.commit()
 
                                 return
 
@@ -141,21 +147,28 @@ class WebSocketClient:
                             message_text = msg_parts[1]
                             sent = msg_parts[2]
 
-                            sender = UserModel.get_or_none(UserModel.username == sender_name)
+                            sender = session.query(UserModel)\
+                                .filter_by(username = sender_name)\
+                                .first()
 
                             if sender:
-                                message_exists = MessageModel.select().where(
-                                    (MessageModel.sender == sender.id) &
-                                    (MessageModel.message == message_text) &
-                                    (MessageModel.time_sent == sent)
-                                ).exists()
+                                message_exists =\
+                                    session.query(MessageModel)\
+                                    .filter_by(
+                                        sender = sender.id,
+                                        message = message_text,
+                                        time_sent = sent
+                                    ).exists()
 
                                 if not message_exists:
-                                    MessageModel.create(
+                                    msg = MessageModel(
                                         message = message_text,
                                         sender = sender.id,
                                         time_sent = sent
                                     )
+
+                                    session.add(msg)
+                                    session.commit()
 
                             await self.update_listview()
 
@@ -192,7 +205,13 @@ class WebSocketClient:
     @async_log
     async def delete_message(self, message_id):
         try:
-            MessageModel.delete_by_id(int(message_id))
+            msg = session.query(MessageModel)\
+                .filter_by(id=int(message_id))\
+                .first()
+
+            session.delete(msg)
+            session.commit()
+
             await self.update_listview()
             await self.send_message(f'DELETE-{message_id}')
 

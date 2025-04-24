@@ -1,6 +1,6 @@
 from core.state.user_states import UserState, NotAuthenticatedState, AuthenticatedState
 from core.controller.utils.hasher import hash_password
-from core.models.models import UserModel
+from core.models.models import UserModel, session
 from core.controller.utils.logger import log
 import traceback
 
@@ -103,11 +103,24 @@ class User:
                 raise ValueError('Username field cannot be empty')
             
             password_hashed = hash_password(password)
-            users = UserModel.select().where(UserModel.username == username, UserModel.password == password_hashed)
+            user = session.query(UserModel)\
+                .filter_by(
+                    username = username.strip(),
+                    password = password_hashed
+                ).first()
             
-            founded = [(um.id, um.username, um.password) for um in users]
-            
-            return founded
+            if user is None:
+                print('founded None')
+                return None
+
+            print(f'founded {user}')
+
+            return {
+                'id': user.id,
+                'username': user.username,
+                'password': user.password
+            }
+        
         except Exception:
             log(f'{__file__} - {traceback.format_exc()}')
 

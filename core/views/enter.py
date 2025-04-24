@@ -2,7 +2,7 @@ import flet as ft
 from config import Styles
 from core.models.user.entity import User
 from core.models.user.factory import UserFactory
-from core.models.models import UserModel
+from core.models.models import UserModel, session
 from core.controller.utils.logger import log, async_log
 
 
@@ -67,12 +67,13 @@ def auth_view(page: ft.Page, user: User, update_view):
             password=login_password_field.value
         )
 
-        if result and isinstance(result[0], tuple):
-            user_founded = result[0]
+        print(f'result {result}')
+
+        if result and isinstance(result, dict):
             user.state.change_user_state(user=user)
-            user.id = user_founded[0]
-            user.username = user_founded[1]
-            user.password = user_founded[2]
+            user.id = result['id']
+            user.username = result['username']
+            user.password = result['password']
             await update_view()
         else:
             login_error_text.value = 'Invalid username or password'
@@ -89,12 +90,19 @@ def auth_view(page: ft.Page, user: User, update_view):
     @async_log
     async def _perform_register():
         if username_register_field.value and password_register_field.value:
-
-            if UserModel.select().where(UserModel.username == username_register_field.value).exists():
+            founded = session.query(UserModel)\
+                .filter_by(
+                    username = username_register_field.value
+                ).first()
+            
+            if founded is not None:
 
                 dialog = ft.AlertDialog(
                     title=ft.Text('Cannot use these credentials')
                 )
+
+                username_register_field.value = ''
+                password_register_field.value = ''
 
                 page.overlay.append(dialog)
                 dialog.open = True

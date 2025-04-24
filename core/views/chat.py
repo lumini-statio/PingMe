@@ -2,7 +2,7 @@ import flet as ft
 import asyncio
 
 from config import Styles
-from core.models.models import MessageModel, UserModel
+from core.models.models import MessageModel, UserModel, session
 from core.models.user.entity import User
 from core.controller.websockets.client_ws import WebSocketClient
 from core.controller.utils.logger import log, async_log
@@ -22,15 +22,14 @@ def chat_view(page: ft.Page, user: User, update_view):
     async def update_listview():
         list_messages.controls.clear()
 
-        messages = (
-            MessageModel
-            .select(MessageModel, UserModel)
-            .join(UserModel, on=(MessageModel.sender == UserModel.id))
-            .order_by(MessageModel.time_sent)
-        )
-        
+        messages = \
+            session.query(MessageModel)\
+            .order_by(MessageModel.time_sent)\
+            .all()
+            
 
         for message in messages:
+            print(message)
             time = str(message.time_sent).replace('T', ' ')
             is_current_user = message.sender.username == user.username
             message_component = ft.Container(

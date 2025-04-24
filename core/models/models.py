@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
-import datetime
+import datetime, time
 
 
 engine = sa.create_engine("sqlite:///chat.db")
@@ -31,14 +31,3 @@ Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session = Session()
-
-user = session.query(UserModel).filter_by(username='test').first()
-
-now = datetime.datetime.now()
-now.microsecond = 0
-
-msg1 = MessageModel(message='holaa', time_sent=now, sender=user.id)
-msg2 = MessageModel(message='buenas', time_sent=now, sender=user)
-session.add_all([msg1, msg2])
-
-session.commit()
