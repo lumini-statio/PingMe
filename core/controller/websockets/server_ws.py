@@ -56,6 +56,8 @@ class WebSocketServer:
             SERVER_PORT,
             ping_interval=20,
             ping_timeout=60):
+            
+            print(f'Running server on port {SERVER_PORT}')
 
             await self.stop_event.wait()
 
