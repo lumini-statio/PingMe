@@ -22,7 +22,6 @@ async def main_view(page: ft.Page):
     user = User()
     current_view = None
 
-    @async_log
     async def update_view():
 
         nonlocal current_view
