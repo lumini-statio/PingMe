@@ -8,6 +8,7 @@ from datetime import datetime
 from core.models.models import MessageModel, UserModel
 from core.models.user.entity import User
 from core.controller.utils.notif_manager import NotificationManager
+from core.controller.utils.server_status import is_port_in_use
 from core.controller.utils.logger import async_log, log
 from core.controller.websockets.server_ws import WebSocketServer
 from config import SERVER_PORT
@@ -77,7 +78,7 @@ class WebSocketClient:
 
         now = datetime.now().strftime('%Y/%m/%d %H:%M:%S')
 
-        if not self.server.is_port_in_use():
+        if not is_port_in_use():
             threading.Thread(
                 target=self.server.run_server,
                 daemon=True
@@ -121,7 +122,7 @@ class WebSocketClient:
         Fun that receives info from the server
         and update the view
         """
-        if not self.server.is_port_in_use():
+        if not is_port_in_use():
             threading.Thread(
                 target=self.server.run_server,
                 daemon=True
@@ -228,7 +229,7 @@ class WebSocketClient:
         """
         fun that reconnect the client to the server
         """
-        if not self.server.is_port_in_use():
+        if not is_port_in_use():
             threading.Thread(
                 target=self.server.run_server,
                 daemon=True
@@ -253,7 +254,7 @@ class WebSocketClient:
         """
         fun that disconnect the client to the server
         """
-        if self.server.is_port_in_use()\
+        if is_port_in_use()\
         and self._lock is not None:
             
             async with (await self.lock):

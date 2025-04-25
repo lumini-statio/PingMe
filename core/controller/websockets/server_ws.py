@@ -1,9 +1,11 @@
 import asyncio
 import websockets
+import socket
+
+from core.controller.utils.server_status import is_port_in_use
 from core.controller.utils.logger import async_log, log
 from config import SERVER_PORT
-from contextlib import closing
-import socket
+
 
 
 
@@ -70,17 +72,11 @@ class WebSocketServer:
             await self.stop_event.wait()
 
             await asyncio.Future()
-
-
-    def is_port_in_use(*args) -> bool:
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(1)
-            return sock.connect_ex(('localhost', SERVER_PORT)) == 0
     
 
     @log
     def run_server(self):
-        if not self.is_port_in_use():
+        if not is_port_in_use():
             try:
                 asyncio.run(self.server())
             finally:
