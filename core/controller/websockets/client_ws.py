@@ -83,6 +83,8 @@ class WebSocketClient:
                 daemon=True
             ).start()
 
+            asyncio.sleep(0.2)
+
             await self.connect()
 
         async with (await self.lock):
@@ -102,7 +104,10 @@ class WebSocketClient:
                     time_sent=now
                 )
                 
-                await self.websocket.send(f"{self.user.username}-{message}-{now}")
+                await self.websocket.send(
+                    f'{self.user.username}-{message}-{now}',
+                    text=True
+                )
                 
                 await self.update_listview()
 
@@ -121,6 +126,8 @@ class WebSocketClient:
                 target=self.server.run_server,
                 daemon=True
             ).start()
+
+            asyncio.sleep(0.2)
 
             await self.connect()
         
@@ -149,7 +156,9 @@ class WebSocketClient:
                     message_text = msg_parts[1]
                     sent = msg_parts[2]
 
-                    sender = UserModel.get_or_none(UserModel.username == sender_name)
+                    sender = UserModel.get_or_none(
+                        UserModel.username == sender_name
+                    )
 
                     if not sender:
                         return
@@ -181,7 +190,7 @@ class WebSocketClient:
                     target=self.server.run_server,
                     daemon=True
                 ).start()
-                
+
                 await self.connect()
                 break
 
@@ -224,6 +233,8 @@ class WebSocketClient:
                 target=self.server.run_server,
                 daemon=True
             ).start()
+
+            asyncio.sleep(0.2)
 
             await self.connect()
 
