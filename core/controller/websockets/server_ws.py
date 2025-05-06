@@ -7,8 +7,6 @@ from core.controller.utils.logger import async_log, log
 from config import SERVER_PORT
 
 
-
-
 class WebSocketServer:
     def __init__(self):
         self.connected_clients = []

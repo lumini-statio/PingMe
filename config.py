@@ -6,7 +6,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-SERVER_PORT = 8080
+SERVER_PORT = 8000
+
+WS_SERVER = "wss://pingme-server-0vgv.onrender.com/ws"
 
 """
 Define styles
